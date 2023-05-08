@@ -7,9 +7,54 @@
 import glob
 import torch
 from os import path as osp
+import logging
 import torch.utils.data as data
-
 import utils.utils_video as utils_video
+import torchvision.transforms as transforms
+import cv2
+
+class Mp4Generator(data.Dataset):
+    def __init__(self, fname_in, frame_start=0, frame_end=10_000):
+        self.fname_in = fname_in
+        self.frame_start = frame_start
+        self.frame_end = frame_end
+        self.images = []
+        # self.check_total_len()
+        self.len = self.read_vid()
+        self.transform = transforms.Compose([
+            transforms.ToTensor(), 
+            lambda x: x[[2,1,0], ...], #BGR to RGB
+            ])
+
+    def read_vid(self):
+        print(f'Starting to read vid file. This may take a while.')
+        vidcap = cv2.VideoCapture(self.fname_in)
+        success, image = vidcap.read()
+        if self.frame_start == 0:
+            self.images.append(image)
+        len_ = 1
+        while success:
+            success, image = vidcap.read()
+            len_ +=1
+            if len_ > self.frame_start and len_ <= self.frame_end:
+                self.images.append(image)
+            elif len_ > self.frame_end:
+                break
+        print(f'Read vid frame interval. Total of {len_} frames loaded to RAM.')
+        return len_
+
+    def __len__(self):
+        return self.frame_end-self.frame_start
+
+    def __getitem__(self, index):
+        im = self.images[index]
+        im = self.transform(im)
+        frame_id = self.frame_start + index
+        return {
+            'L': im,
+            'folder': None,
+            'lq_path': frame_id,
+        }
 
 
 class VideoRecurrentTestDataset(data.Dataset):
@@ -367,7 +412,7 @@ class SingleVideoRecurrentTestDataset(data.Dataset):
 
             # cache data or save the frame list
             if self.cache_data:
-                logger.info(f'Cache {subfolder_name} for VideoTestDataset...')
+                logging.info(f'Cache {subfolder_name} for VideoTestDataset...')
                 self.imgs_lq[subfolder_name] = utils_video.read_img_seq(img_paths_lq)
             else:
                 self.imgs_lq[subfolder_name] = img_paths_lq

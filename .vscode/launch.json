@@ -1,0 +1,19 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Manual Debugging File",
+            "type": "python",
+            "request": "launch",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "program": "firat_test_rvrt.py",
+            "args": [
+                "--task=001_RVRT_videosr_bi_REDS_30frames", "--fname_lq=/mnt/f/old_videos/1996_05.mp4", "--folder_out=/mnt/f/old_videos/ai_output/rvrt", "--tile", "0 0 0", "--tile_overlap", "2 20 20", "--sigma=20", "--num_workers=8"
+            ]
+        }
+    ]
+}
